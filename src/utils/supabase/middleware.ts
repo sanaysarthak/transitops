@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { hasRouteAccess, UserRole } from '@/lib/constants'
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -40,18 +41,38 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  if (user && isAuthPage) {
-    // Redirect authenticated users away from auth pages to dashboard
-    const url = request.nextUrl.clone()
-    url.pathname = '/dashboard'
-    return NextResponse.redirect(url)
-  }
+  if (user) {
+    // Fetch profile role from database
+    const { data: profile } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', user.id)
+      .single()
 
-  if (user && request.nextUrl.pathname === '/') {
-    // Redirect authenticated users at root to dashboard
-    const url = request.nextUrl.clone()
-    url.pathname = '/dashboard'
-    return NextResponse.redirect(url)
+    const role = (profile?.role || 'fleet_manager') as UserRole
+
+    if (isAuthPage) {
+      // Redirect authenticated users away from auth pages to dashboard
+      const url = request.nextUrl.clone()
+      url.pathname = '/dashboard'
+      return NextResponse.redirect(url)
+    }
+
+    if (request.nextUrl.pathname === '/') {
+      // Redirect root to dashboard
+      const url = request.nextUrl.clone()
+      url.pathname = '/dashboard'
+      return NextResponse.redirect(url)
+    }
+
+    // Role-Based Access Control on dashboard routes
+    if (request.nextUrl.pathname.startsWith('/dashboard/')) {
+      if (!hasRouteAccess(role, request.nextUrl.pathname)) {
+        const url = request.nextUrl.clone()
+        url.pathname = '/dashboard'
+        return NextResponse.redirect(url)
+      }
+    }
   }
 
   return supabaseResponse
