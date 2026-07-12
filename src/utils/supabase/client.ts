@@ -1,8 +1,28 @@
-import { createBrowserClient } from '@supabase/ssr'
-
+// DEMO MODE: Supabase bypassed — returns a stub client
 export function createClient() {
-  return createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
+  const noopQuery: any = {
+    select: () => noopQuery,
+    insert: () => noopQuery,
+    update: () => noopQuery,
+    delete: () => noopQuery,
+    upsert: () => noopQuery,
+    eq: () => noopQuery,
+    neq: () => noopQuery,
+    in: () => noopQuery,
+    order: () => noopQuery,
+    limit: () => noopQuery,
+    single: () => Promise.resolve({ data: null, error: null }),
+    then: (resolve: (v: { data: any[]; error: null }) => any) =>
+      Promise.resolve(resolve({ data: [], error: null })),
+  }
+
+  return {
+    auth: {
+      getUser: async () => ({ data: { user: null }, error: null }),
+      signInWithPassword: async () => ({ data: null, error: { message: 'Demo mode' } }),
+      signOut: async () => ({ error: null }),
+      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+    },
+    from: (_table: string) => noopQuery,
+  } as any
 }

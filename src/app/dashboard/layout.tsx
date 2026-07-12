@@ -1,35 +1,28 @@
-import { createClient } from '@/utils/supabase/server'
-import { redirect } from 'next/navigation'
 import { Sidebar } from '@/components/layout/sidebar'
 import { Topbar } from '@/components/layout/topbar'
+import type { UserRole } from '@/lib/types'
+
+// DEMO MODE: Supabase auth bypassed
+const DEMO_USER = { email: 'demo@transitops.dev', role: 'fleet_manager' as UserRole }
 
 export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
-
-  // Get user role from public.users table
-  const { data: profile } = await supabase
-    .from('users')
-    .select('*')
-    .eq('id', user.id)
-    .single()
-
-  const userRole = profile?.role || user.user_metadata?.role || 'driver'
+  const userRole = DEMO_USER.role
+  const userEmail = DEMO_USER.email
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      <Sidebar userRole={userRole} userEmail={user.email || ''} />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Topbar userRole={userRole} userEmail={user.email || ''} />
-        <main className="flex-1 overflow-y-auto p-6 bg-muted/30">
+    <div className="flex h-screen overflow-hidden print:h-auto print:overflow-visible print:block">
+      <div className="print:hidden">
+        <Sidebar userRole={userRole} userEmail={userEmail} />
+      </div>
+      <div className="flex-1 flex flex-col overflow-hidden print:block print:overflow-visible">
+        <div className="print:hidden">
+          <Topbar userRole={userRole} userEmail={userEmail} />
+        </div>
+        <main className="flex-1 overflow-y-auto p-6 bg-muted/30 print:p-0 print:bg-white print:overflow-visible print:block">
           {children}
         </main>
       </div>

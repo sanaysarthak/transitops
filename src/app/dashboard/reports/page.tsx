@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
-import { Download, Loader2 } from 'lucide-react'
+import { Download, Loader2, Printer } from 'lucide-react'
 import { getFuelEfficiency, getOperationalCosts, getVehicleROI } from './actions'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -74,9 +74,18 @@ export default function ReportsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Reports & Fleet Analytics</h1>
-        <p className="text-muted-foreground">Monitor performance indicators, operational costs, and investment returns.</p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Reports & Fleet Analytics</h1>
+          <p className="text-muted-foreground">Monitor performance indicators, operational costs, and investment returns.</p>
+        </div>
+        <Button 
+          variant="outline" 
+          onClick={() => window.print()}
+          className="print:hidden w-fit shadow-xs gap-2"
+        >
+          <Printer className="w-4 h-4" /> Print Report / PDF
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

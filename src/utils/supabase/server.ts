@@ -1,28 +1,27 @@
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
-
+// DEMO MODE: Supabase bypassed — returns a stub client
 export async function createClient() {
-  const cookieStore = await cookies()
+  const noopQuery: any = {
+    select: () => noopQuery,
+    insert: () => noopQuery,
+    update: () => noopQuery,
+    delete: () => noopQuery,
+    upsert: () => noopQuery,
+    eq: () => noopQuery,
+    neq: () => noopQuery,
+    in: () => noopQuery,
+    order: () => noopQuery,
+    limit: () => noopQuery,
+    single: () => Promise.resolve({ data: null, error: null }),
+    then: (resolve: (v: { data: any[]; error: null }) => any) =>
+      Promise.resolve(resolve({ data: [], error: null })),
+  }
 
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll()
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            )
-          } catch {
-            // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing user sessions.
-          }
-        },
-      },
-    }
-  )
+  return {
+    auth: {
+      getUser: async () => ({ data: { user: null }, error: null }),
+      signInWithPassword: async () => ({ data: null, error: { message: 'Demo mode' } }),
+      signOut: async () => ({ error: null }),
+    },
+    from: (_table: string) => noopQuery,
+  } as any
 }
